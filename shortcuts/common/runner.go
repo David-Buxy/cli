@@ -190,6 +190,12 @@ func (ctx *RuntimeContext) Int(name string) int {
 	return v
 }
 
+// IntArray returns an int-array flag value (repeated flag, also supports CSV splitting).
+func (ctx *RuntimeContext) IntArray(name string) []int {
+	v, _ := ctx.Cmd.Flags().GetIntSlice(name)
+	return v
+}
+
 // StrArray returns a string-array flag value (repeated flag, no CSV splitting).
 func (ctx *RuntimeContext) StrArray(name string) []string {
 	v, _ := ctx.Cmd.Flags().GetStringArray(name)
@@ -986,6 +992,8 @@ func registerShortcutFlagsWithContext(ctx context.Context, cmd *cobra.Command, f
 			var d int
 			fmt.Sscanf(fl.Default, "%d", &d)
 			cmd.Flags().Int(fl.Name, d, desc)
+		case "int_array":
+			cmd.Flags().IntSlice(fl.Name, nil, desc)
 		case "string_array":
 			cmd.Flags().StringArray(fl.Name, nil, desc)
 		case "string_slice":

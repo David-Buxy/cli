@@ -1,7 +1,7 @@
 ---
 name: lark-slides
 version: 1.0.0
-description: "飞书幻灯片：创建和编辑幻灯片，接口通过 XML 协议通信。创建演示文稿、读取幻灯片内容、管理幻灯片页面（创建、删除、读取、局部替换）。当用户需要创建或编辑幻灯片、读取或修改单个页面时使用。"
+description: "飞书幻灯片：创建和编辑幻灯片，接口通过 XML 协议通信。创建演示文稿、读取幻灯片内容、获取页面截图、管理幻灯片页面（创建、删除、读取、局部替换）。当用户需要创建或编辑幻灯片、读取或修改单个页面、导出页面截图时使用。"
 metadata:
   requires:
     bins: ["lark-cli"]
@@ -18,6 +18,7 @@ metadata:
 | 大幅改写页面 | 先回读现有 XML，写入新 plan，再替换或重建相关页面 | `xml_presentations.get`、`+replace-slide`、`lark-slides-edit-workflows.md` |
 | 编辑单个标题、文本块、图片或局部元素 | 优先块级替换/插入，不改页序 | `slides +replace-slide`、`lark-slides-replace-slide.md` |
 | 读取或分析已有 PPT | 解析 slides/wiki token，回读全文或单页 XML，保存 `xml_presentation_id`、`slide_id`、`revision_id` | `xml_presentations.get`、`xml_presentation.slide.get` |
+| 获取幻灯片页面截图 | 先确认 `slide_id` 列表，再用 shortcut 保存本地图片；不要把 Base64 输出给模型 | `slides +screenshot`、`lark-slides-screenshot.md` |
 | 上传或使用图片 | 先上传为 `file_token`，禁止直接写 http(s) 外链 | `slides +media-upload`，或 `+create --slides` 的 `@./path` 占位符 |
 | 用户提到模板、主题、版式 | 先检索模板，再摘要，必要时裁切骨架 | `template_tool.py search → summarize → extract` |
 | 创建失败、空白页、3350001、布局异常 | 先回读状态，再按排障清单修复，不假设原操作原子成功 | `troubleshooting.md`、`validation-checklist.md` |
@@ -79,6 +80,7 @@ lark-cli auth login --domain slides
 
 - 创建：[`lark-slides-create.md`](references/lark-slides-create.md)
 - 编辑：[`lark-slides-edit-workflows.md`](references/lark-slides-edit-workflows.md)、[`lark-slides-replace-slide.md`](references/lark-slides-replace-slide.md)
+- 截图：[`lark-slides-screenshot.md`](references/lark-slides-screenshot.md)
 - 图片：[`lark-slides-media-upload.md`](references/lark-slides-media-upload.md)
 - 模板：[`template-catalog.md`](references/template-catalog.md)、[`scripts/template_tool.py`](scripts/template_tool.py)
 - 排障：[`troubleshooting.md`](references/troubleshooting.md)
