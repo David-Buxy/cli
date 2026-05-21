@@ -42,10 +42,10 @@ func ResolveEndpoints(brand LarkBrand) Endpoints {
 		}
 	default:
 		return Endpoints{
-			Open:     "https://open.feishu.cn",
-			Accounts: "https://accounts.feishu.cn",
-			MCP:      "https://mcp.feishu.cn",
-			AppLink:  "https://applink.feishu.cn",
+			Open:     "https://open.feishu-boe.cn",
+			Accounts: "https://accounts.feishu-boe.cn",
+			MCP:      "https://mcp.feishu-boe.cn",
+			AppLink:  "https://applink.feishu-boe.cn",
 		}
 	}
 }
