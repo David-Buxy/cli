@@ -50,7 +50,6 @@ func BaseSecurityHeaders() http.Header {
 	h.Set(HeaderVersion, build.Version)
 	h.Set(HeaderBuild, DetectBuildKind())
 	h.Set(HeaderUserAgent, UserAgentValue())
-	h.Set("x-tt-env", "boe_vc_artboard")
 	return h
 }
 
