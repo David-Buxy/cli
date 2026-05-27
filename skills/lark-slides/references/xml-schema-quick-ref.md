@@ -142,6 +142,8 @@ XSD 中的 `title`、`headline`、`sub-headline`、`body`、`caption` 主要出�
 <icon iconType="iconpark/Base/setting.svg" topLeftX="80" topLeftY="120" width="32" height="32"/>
 ```
 
+`iconType` 必须来自已验证的 IconPark 路径。需要语义图标时，先运行 `scripts/iconpark_tool.py search --query "<语义>"`，不要凭记忆拼路径。更多规则见 [iconpark.md](iconpark.md)。
+
 ## 颜色与样式
 
 ### fill
