@@ -1018,6 +1018,9 @@ func registerShortcutFlagsWithContext(ctx context.Context, cmd *cobra.Command, f
 	cmd.Flags().Bool("dry-run", false, "print request without executing")
 	if s.HasFormat {
 		cmd.Flags().String("format", "json", "output format: json (default) | pretty | table | ndjson | csv")
+		if cmd.Flags().Lookup("json") == nil {
+			cmd.Flags().Bool("json", false, "shorthand for --format json")
+		}
 	}
 	if s.Risk == "high-risk-write" {
 		cmd.Flags().Bool("yes", false, "confirm high-risk operation")
