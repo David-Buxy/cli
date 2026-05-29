@@ -226,7 +226,17 @@ N. 结尾页：[结尾文案]
 | `/slides/` | `https://example.larkoffice.com/slides/xxxxxxxxxxxxx` | `xml_presentation_id` | URL 路径中的 token 直接作为 `xml_presentation_id` 使用 |
 | `/wiki/` | `https://example.larkoffice.com/wiki/wikcnxxxxxxxxx` | `wiki_token` | ⚠️ **不能直接使用**，需要先查询获取真实的 `obj_token` |
 
-> `+replace-slide` 和 `+media-upload` 会自动解析以上两种 URL。**只有直接调用原生 API（`xml_presentations.*` / `xml_presentation.slide.*`）时**才需手动解析 wiki 链接：先用 wiki node 查询确认 `node.obj_type == "slides"`，再用 `node.obj_token` 作为 `xml_presentation_id`。
+> `+replace-slide` 和 `+media-upload` shortcut 会自动解析以上两种 URL；直接调用原生 API 时仍需手动解析 wiki 链接。
+
+### Wiki 链接特殊处理（关键！）
+
+知识库链接（`/wiki/TOKEN`）不能直接当 `xml_presentation_id`。直接调用原生 API 前，先查询 wiki 节点，确认 `node.obj_type == "slides"`，再用 `node.obj_token` 作为真实 presentation ID。
+
+```bash
+lark-cli wiki spaces get_node --as user --params '{"token":"wiki_token"}'
+```
+
+Shortcut `+replace-slide` 和 `+media-upload` 会自动解析 `/wiki/` URL；手动调用 `xml_presentations.*` / `xml_presentation.slide.*` 时才需要自己做这一步。
 
 ### 资源关系
 
