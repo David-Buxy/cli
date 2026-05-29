@@ -1,7 +1,7 @@
 ---
 name: lark-slides
 version: 1.0.0
-description: "飞书幻灯片：创建和编辑幻灯片，接口通过 XML 协议通信。创建演示文稿、读取幻灯片内容、管理幻灯片页面（创建、删除、读取、局部替换）。当用户需要创建或编辑幻灯片、读取或修改单个页面时使用。当用户给出 doubao.com 的 /slides/ URL/token 时，也应直接使用本 skill，不要因为域名不是飞书而回退到 WebFetch；路由依据是 URL 路径模式和 token，而不是域名。"
+description: "飞书幻灯片：创建和编辑幻灯片。创建演示文稿、读取幻灯片内容、管理幻灯片页面（创建、删除、读取、局部替换）。当用户需要创建或编辑幻灯片、读取或修改单个页面时使用。当用户给出 doubao.com 的 /slides/ URL/token 时，也应直接使用本 skill，不要因为域名不是飞书而回退到 WebFetch；路由依据是 URL 路径模式和 token，而不是域名。不负责：云文档内容编辑（走 lark-doc）、画板绘图（走 lark-whiteboard）、上传或下载普通文件（走 lark-drive）。"
 metadata:
   requires:
     bins: ["lark-cli"]
@@ -90,41 +90,9 @@ lark-cli auth login --domain slides
 
 ### Design Ideas
 
-不要生成无设计感的幻灯片。纯白背景 + 标题 + bullets 只能作为极简临时稿，不能作为正式交付。
+不要生成无设计感的幻灯片。纯白背景 + 标题 + bullets 只能作为极简临时稿，不能作为正式交付。**每页至少要有一个视觉元素**（图片、图标、图表、表格、流程、对比结构、大号数字、示意图或由 shape 组成的抽象视觉）；文本框本身不算主视觉。
 
-开始写 XML 前，先在 `slide_plan.json` 里确定 deck 级视觉策略：
-
-- **主题化配色**：配色必须服务本次主题、行业和受众，不要默认蓝色商务风。如果把同一套颜色换到另一个完全不同主题仍然成立，说明配色不够具体。
-- **主次比例**：选择 1 个主色承担约 60-70% 视觉权重，1-2 个辅助色承担结构和分区，1 个强调色只用于关键数字、结论或行动点。不要让所有颜色权重相同。
-- **背景一致性**：先确定全 deck 的背景策略，默认保持同一明暗基调和底色体系；只有分节、转场或强调页才有意改变背景，并必须通过相同主色、纹理、边栏或 motif 让变化看起来属于同一套设计。无论深浅，都要保证正文、图标和线条对比充足。
-- **统一 motif**：选择一个可复用视觉母题贯穿全文，例如粗侧边栏、圆形图标底、半出血图片区、编号节点、卡片左上角色块或大号数字。不要每页换一套装饰语言。
-
-每页至少要有一个视觉元素：图片、图标、图表、表格、流程、对比结构、大号数字、示意图或由 shape 组成的抽象视觉。文本框本身不算主视觉。
-
-可优先考虑这些页面形态：
-
-- **双栏结构**：左文右图或左图右文，视觉区域占 35-45% 宽度。
-- **图标行**：图标在色块或圆形底中，右侧是短标题和一句解释。
-- **2x2 / 2x3 网格**：适合能力、模块、风险、行动项，每格内容保持同等层级。
-- **半出血视觉**：图片或抽象形状占据左/右半屏，文字覆盖或贴边排布。
-- **大数字卡片**：关键指标用 60-72pt 数字，下面配 10-14pt 标签。
-- **对比列**：before/after、方案 A/B、问题/解法用左右并列，标题和基线严格对齐。
-- **时间线/流程图**：步骤用节点和箭头表达，流程方向必须一眼可见。
-
-字体和间距建议：
-
-- 标题 36-44pt，关键结论可更大；正文 14-18pt；注释 10-12pt。
-- 正文默认左对齐；只在封面、结尾或大号数字场景中使用居中。
-- 页面边距至少 40px；内容块之间保持 24-40px 间距，并在同一 deck 内保持一致。
-- 卡片内边距要真实留出空间，不要让文字贴边；对齐 shape 和文字时要考虑文本框 padding。
-
-常见错误必须避免：
-
-- 不要所有页面复用同一种标题 + 三 bullets 版式。
-- 不要用低对比文字或低对比图标，例如浅灰字压在浅色背景上。
-- 不要让装饰线穿过文字，或让页脚、来源、编号挤压主体内容。
-- 不要把素材缺失表现为空白图片框；必须按 `fallback_if_missing` 生成 XML-native 视觉。
-- 不要留下模板占位文案、示例公司名、示例日期或与用户主题无关的原模板内容。
+完整的设计规范——deck 级配色策略、背景与 motif 一致性、各 `layout_type` 的几何与页面形态、字体间距和文本贴合（text-fit）护栏、常见错误清单——都在 [visual-planning.md](references/visual-planning.md)。新建或大幅改写时该文件已是 CRITICAL 强制读取项，按其规则规划后再写 XML。
 
 ### 创建方式选择
 
@@ -226,17 +194,11 @@ N. 结尾页：[结尾文案]
 | `/slides/` | `https://example.larkoffice.com/slides/xxxxxxxxxxxxx` | `xml_presentation_id` | URL 路径中的 token 直接作为 `xml_presentation_id` 使用 |
 | `/wiki/` | `https://example.larkoffice.com/wiki/wikcnxxxxxxxxx` | `wiki_token` | ⚠️ **不能直接使用**，需要先查询获取真实的 `obj_token` |
 
-> `+replace-slide` 和 `+media-upload` shortcut 会自动解析以上两种 URL；直接调用原生 API 时仍需手动解析 wiki 链接。
-
-### Wiki 链接特殊处理（关键！）
-
-知识库链接（`/wiki/TOKEN`）不能直接当 `xml_presentation_id`。直接调用原生 API 前，先查询 wiki 节点，确认 `node.obj_type == "slides"`，再用 `node.obj_token` 作为真实 presentation ID。
-
-```bash
-lark-cli wiki spaces get_node --as user --params '{"token":"wiki_token"}'
-```
-
-Shortcut `+replace-slide` 和 `+media-upload` 会自动解析 `/wiki/` URL；手动调用 `xml_presentations.*` / `xml_presentation.slide.*` 时才需要自己做这一步。
+> `+replace-slide` 和 `+media-upload` 会自动解析以上两种 URL。**只有直接调用原生 API（`xml_presentations.*` / `xml_presentation.slide.*`）时**才需手动解析 wiki 链接：先查询节点确认 `node.obj_type == "slides"`，再用 `node.obj_token` 作为 `xml_presentation_id`。
+>
+> ```bash
+> lark-cli wiki spaces get_node --as user --params '{"token":"wiki_token"}'
+> ```
 
 ### 资源关系
 
@@ -280,17 +242,17 @@ lark-cli slides <resource> <method> [flags] # 调用 API
 7. **编辑已有页面优先块级替换**：修改单个 shape/img 用 `+replace-slide`（`block_replace` / `block_insert`），不要整页重建；只有需要替换整页结构时才用 `slide.delete` + `slide.create`
 8. **`<img src>` 只能用上传到飞书 drive 的 `file_token`，禁止使用 http(s) 外链 URL**：飞书 slides 渲染端不会代理外链图片，外链 src 在 PPT 里通常不显示或显示破图。流程必须是「先把图存到本地 → 用 `slides +media-upload` 上传或 `+create --slides` 的 `@./path` 占位符自动上传 → 拿 `file_token` 写进 `<img src>`」。如果用户给了网图链接，先 `curl`/下载到 CWD 内再走上传流程，不要直接把外链 URL 塞进 `src`。**图片最大 20 MB**（slides upload API 不支持分片上传）。
 
+## 不在本 skill 范围
+
+| 需求 | 正确去向 |
+|------|----------|
+| 编辑云文档（docx / wiki 文档）正文内容 | [lark-doc](../lark-doc/SKILL.md) |
+| 画板 / 架构图 / 流程图等画板绘图 | [lark-whiteboard](../lark-whiteboard/SKILL.md) |
+| 上传、下载、移动、删除普通文件，管理云空间 | [lark-drive](../lark-drive/SKILL.md) |
+| 操作幻灯片内嵌的表格 / 多维表格数据 | [lark-sheets](../lark-sheets/SKILL.md) / [lark-base](../lark-base/SKILL.md) |
+
 ## 权限速查
 
-| 方法 | 所需 scope |
-|------|-----------|
-| `slides +create` | `slides:presentation:create`, `slides:presentation:write_only`（含 `@` 占位符时还需 `docs:document.media:upload`） |
-| `slides +media-upload` | `docs:document.media:upload`（wiki URL 解析还需 `wiki:node:read`） |
-| `slides +replace-slide` | `slides:presentation:update`（wiki URL 解析还需 `wiki:node:read`） |
-| `xml_presentations.get` | `slides:presentation:read` |
-| `xml_presentation.slide.create` | `slides:presentation:update` 或 `slides:presentation:write_only` |
-| `xml_presentation.slide.delete` | `slides:presentation:update` 或 `slides:presentation:write_only` |
-| `xml_presentation.slide.get` | `slides:presentation:read` |
-| `xml_presentation.slide.replace` | `slides:presentation:update` |
+各方法所需 scope 见 [`lark-slides-permissions.md`](references/lark-slides-permissions.md)；权限不足的处理流程见 [`../lark-shared/SKILL.md`](../lark-shared/SKILL.md)。
 
 > **注意**：如果 md 内容与 `slides_xml_schema_definition.xml` 或 `lark-cli schema slides.<resource>.<method>` 输出不一致，以后两者为准。

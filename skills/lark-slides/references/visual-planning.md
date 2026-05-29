@@ -30,6 +30,22 @@ Decks can vary page backgrounds, but variation must be intentional and legible:
 - Reuse a small number of visual devices: side bar, card radius, node style, line weight, icon container, or footer treatment. Do not introduce a new decorative language on each page.
 - Insert background and motif shapes before content elements so they do not cover text, images, or diagrams.
 
+## 配色策略
+
+在生成 XML 前先在 `slide_plan.json` 的 `visual_system` 里定下 deck 级配色，全 deck 复用同一套，不要逐页换色：
+
+- **主题化配色**：配色必须服务本次主题、行业和受众，不要默认蓝色商务风。如果把同一套颜色换到另一个完全不同主题仍然成立，说明配色不够具体。
+- **主次比例**：选 1 个主色承担约 60-70% 视觉权重，1-2 个辅助色承担结构和分区，1 个强调色只用于关键数字、结论或行动点。不要让所有颜色权重相同。
+- **对比充足**：无论深浅背景，都要保证正文、图标和线条对比充足。不要用低对比文字或低对比图标（例如浅灰字压在浅色背景上）。
+- **每页一个主视觉**：每页至少要有一个视觉元素（图片、图标、图表、表格、流程、对比结构、大号数字、示意图或由 shape 组成的抽象视觉）。文本框本身不算主视觉。
+
+常见错误必须避免：
+
+- 不要所有页面复用同一种「标题 + 三 bullets」版式。
+- 不要让装饰线穿过文字，或让页脚、来源、编号挤压主体内容。
+- 不要把素材缺失表现为空白图片框；必须按 `fallback_if_missing` 生成 XML-native 视觉。
+- 不要留下模板占位文案、示例公司名、示例日期或与用户主题无关的原模板内容。
+
 ## Text Fit Guardrails
 
 Use these as conservative minimums on a 960 x 540 canvas. Increase height when using bold text, Chinese text, mixed Chinese/English, or line spacing above default.
@@ -52,8 +68,14 @@ Additional rules:
 - Diagram labels should be short enough to fit the shape. Prefer two short lines over one cramped long line.
 - When a text block has more than one `<p>`, size the box for multiple lines explicitly. Do not assume the renderer will auto-expand.
 - If a line contains mixed Chinese and English, budget more width than either language alone; mixed text wraps less predictably.
+- 正文默认左对齐；只在封面、结尾或大号数字（`big-number`）场景才使用居中。
 
 ## Layout Types
+
+下列是合法的 `layout_type` 取值（与 `planning-layer.md` 的枚举一致）。除此之外还有两个常见的**页内组合结构**，它们不是 `layout_type` 取值，而是在合适的 layout 内实现的排布方式：
+
+- **图标行**：图标置于色块或圆形底中，右侧配短标题和一句解释，适合罗列能力、特性或模块。
+- **2x2 / 2x3 网格**：适合能力、模块、风险、行动项，每格内容保持同等层级；通常落在 `comparison` 或 `high` 文本密度的内容页里。
 
 ### `title-cover`
 
