@@ -22,7 +22,7 @@ metadata:
 | 用户提到模板、主题、版式 | 先检索模板，再摘要，必要时裁切骨架 | `template_tool.py search → summarize → extract` |
 | 创建失败、空白页、3350001、布局异常 | 先回读状态，再按排障清单修复，不假设原操作原子成功 | `troubleshooting.md`、`validation-checklist.md` |
 
-**CRITICAL — 开始前 MUST 先用 Read 工具读取 [`../lark-shared/SKILL.md`](../lark-shared/SKILL.md)，其中包含认证、权限处理**
+**CRITICAL — 开始前 MUST 先用 Read 工具读取 [`../lark-shared/SKILL.md`](../lark-shared/SKILL.md)，认证、权限和全局参数均以 lark-shared 为准。**
 
 **CRITICAL — 生成任何 XML 之前，MUST 先用 Read 工具读取 [xml-schema-quick-ref.md](references/xml-schema-quick-ref.md)，禁止凭记忆猜测 XML 结构。**
 
@@ -47,21 +47,11 @@ metadata:
 
 ## 身份选择
 
-飞书幻灯片通常是用户自己的内容资源。**默认应优先显式使用 `--as user`（用户身份）执行 slides 相关操作**，始终显式指定身份。
+飞书幻灯片通常是用户自己的内容资源，执行 slides 操作时始终显式指定身份。
 
-- **`--as user`（推荐）**：以当前登录用户身份创建、读取、管理演示文稿。执行前先完成用户授权：
-
-```bash
-lark-cli auth login --domain slides
-```
-
-- **`--as bot`**：仅在用户明确要求以应用身份操作，或需要让 bot 持有/创建资源时使用。使用 bot 身份时，要额外确认 bot 是否真的有目标演示文稿的访问权限。
-
-**执行规则**：
-
-1. 创建、读取、增删 slide、按用户给出的链接继续编辑已有 PPT，默认都先用 `--as user`。
-2. 如果出现权限不足，先检查当前是否误用了 bot 身份；不要默认回退到 bot。
-3. 只有在用户明确要求"用应用身份 / bot 身份操作"，或当前工作流就是 bot 创建资源后再做协作授权时，才切换到 `--as bot`。
+1. 创建、读取、增删 slide、按用户给出的链接继续编辑已有 PPT，默认使用 `--as user`。
+2. 只有在用户明确要求应用身份，或当前工作流要求 bot 持有/创建资源时，才使用 `--as bot`。
+3. 如果出现权限不足，先检查是否误用了身份；认证和授权修复流程按 lark-shared 执行。
 
 ## 执行前必做
 
@@ -194,11 +184,7 @@ N. 结尾页：[结尾文案]
 | `/slides/` | `https://example.larkoffice.com/slides/xxxxxxxxxxxxx` | `xml_presentation_id` | URL 路径中的 token 直接作为 `xml_presentation_id` 使用 |
 | `/wiki/` | `https://example.larkoffice.com/wiki/wikcnxxxxxxxxx` | `wiki_token` | ⚠️ **不能直接使用**，需要先查询获取真实的 `obj_token` |
 
-> `+replace-slide` 和 `+media-upload` 会自动解析以上两种 URL。**只有直接调用原生 API（`xml_presentations.*` / `xml_presentation.slide.*`）时**才需手动解析 wiki 链接：先查询节点确认 `node.obj_type == "slides"`，再用 `node.obj_token` 作为 `xml_presentation_id`。
->
-> ```bash
-> lark-cli wiki spaces get_node --as user --params '{"token":"wiki_token"}'
-> ```
+> `+replace-slide` 和 `+media-upload` 会自动解析以上两种 URL。**只有直接调用原生 API（`xml_presentations.*` / `xml_presentation.slide.*`）时**才需手动解析 wiki 链接：先用 wiki node 查询确认 `node.obj_type == "slides"`，再用 `node.obj_token` 作为 `xml_presentation_id`。
 
 ### 资源关系
 
@@ -224,12 +210,14 @@ Shortcut 是对常用操作的高级封装（`lark-cli slides +<verb> [flags]`�
 | [`+media-upload`](references/lark-slides-media-upload.md) | 上传本地图片到指定演示文稿，返回 `file_token`（用作 `<img src="...">`），最大 20 MB |
 | [`+replace-slide`](references/lark-slides-replace-slide.md) | 对已有幻灯片页面进行块级替换/插入（`block_replace` / `block_insert`），自动注入 id 和 `<content/>`，不改变页序 |
 
+没有 Shortcut 覆盖时使用原生 API。高频资源：`xml_presentations.get` 读取全文；`xml_presentation.slide.create/delete/get/replace` 管理单页。
+
 ```bash
 lark-cli schema slides.<resource>.<method>   # 调用 API 前必须先查看参数结构
 lark-cli slides <resource> <method> [flags] # 调用 API
 ```
 
-原生 API 高频资源：`xml_presentations.get` 读取全文；`xml_presentation.slide.create/delete/get/replace` 管理单页。使用原生 API 时，必须先运行 `schema` 查看 `--data` / `--params` 参数结构，不要猜字段。
+> **重要**：使用原生 API 时，必须先运行 `schema` 查看 `--data` / `--params` 参数结构，不要猜测字段格式。
 
 ## 核心规则
 
@@ -250,9 +238,5 @@ lark-cli slides <resource> <method> [flags] # 调用 API
 | 画板 / 架构图 / 流程图等画板绘图 | [lark-whiteboard](../lark-whiteboard/SKILL.md) |
 | 上传、下载、移动、删除普通文件，管理云空间 | [lark-drive](../lark-drive/SKILL.md) |
 | 操作幻灯片内嵌的表格 / 多维表格数据 | [lark-sheets](../lark-sheets/SKILL.md) / [lark-base](../lark-base/SKILL.md) |
-
-## 权限速查
-
-各方法所需 scope 见 [`lark-slides-permissions.md`](references/lark-slides-permissions.md)；权限不足的处理流程见 [`../lark-shared/SKILL.md`](../lark-shared/SKILL.md)。
 
 > **注意**：如果 md 内容与 `slides_xml_schema_definition.xml` 或 `lark-cli schema slides.<resource>.<method>` 输出不一致，以后两者为准。
