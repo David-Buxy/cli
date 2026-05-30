@@ -52,8 +52,8 @@ func TestVCKeys_RecordingEventsRegistered(t *testing.T) {
 			if !strings.Contains(def.Description, "source") || !strings.Contains(def.Description, "recording_bean") {
 				t.Errorf("Description should document source compatibility risk, got %q", def.Description)
 			}
-			if tc.eventType == eventTypeRecordingEnded && (!strings.Contains(def.Description, "object_type") || !strings.Contains(def.Description, "minute")) {
-				t.Errorf("ended Description should document object_type/minute instability, got %q", def.Description)
+			if tc.eventType == eventTypeRecordingEnded && (!strings.Contains(def.Description, "object_type") || !strings.Contains(def.Description, "minutes")) {
+				t.Errorf("ended Description should document object_type/minutes instability, got %q", def.Description)
 			}
 		})
 	}
@@ -71,8 +71,7 @@ func TestProcessVCRecordingStarted(t *testing.T) {
 		},
 		"event": {
 			"recording_id": "recording_001",
-			"source": "recording_bean",
-			"subscriber_ids": [111, 222]
+			"source": "recording_bean"
 		}
 	}`)
 
@@ -85,7 +84,6 @@ func TestProcessVCRecordingStarted(t *testing.T) {
 	if out.RecordingID != "recording_001" || out.Source != "recording_bean" {
 		t.Errorf("RecordingID/Source = %q/%q", out.RecordingID, out.Source)
 	}
-	assertStringSlice(t, out.SubscriberIDs, []string{"111", "222"})
 }
 
 func TestProcessVCRecordingTranscriptGenerated(t *testing.T) {
@@ -101,7 +99,6 @@ func TestProcessVCRecordingTranscriptGenerated(t *testing.T) {
 		"event": {
 			"recording_id": "recording_001",
 			"source": "recording_bean",
-			"subscriber_ids": [111],
 			"transcript_items": [
 				{
 					"speaker": {
@@ -126,7 +123,6 @@ func TestProcessVCRecordingTranscriptGenerated(t *testing.T) {
 	if out.RecordingID != "recording_001" || out.Source != "recording_bean" {
 		t.Errorf("RecordingID/Source = %q/%q", out.RecordingID, out.Source)
 	}
-	assertStringSlice(t, out.SubscriberIDs, []string{"111"})
 	if len(out.TranscriptItems) != 1 {
 		t.Fatalf("TranscriptItems len = %d, want 1", len(out.TranscriptItems))
 	}
@@ -158,8 +154,7 @@ func TestProcessVCRecordingEnded(t *testing.T) {
 		"event": {
 			"recording_id": "recording_001",
 			"source": "recording_bean",
-			"subscriber_ids": [111],
-			"object_type": "minute",
+			"object_type": "minutes",
 			"object_id": "minute_token_001"
 		}
 	}`)
@@ -170,8 +165,7 @@ func TestProcessVCRecordingEnded(t *testing.T) {
 	if out.RecordingID != "recording_001" || out.Source != "recording_bean" {
 		t.Errorf("RecordingID/Source = %q/%q", out.RecordingID, out.Source)
 	}
-	assertStringSlice(t, out.SubscriberIDs, []string{"111"})
-	if out.ObjectType != "minute" || out.ObjectID != "minute_token_001" {
+	if out.ObjectType != "minutes" || out.ObjectID != "minute_token_001" {
 		t.Errorf("ObjectType/ObjectID = %q/%q", out.ObjectType, out.ObjectID)
 	}
 }
@@ -277,16 +271,4 @@ func runRecordingProcess[T any](t *testing.T, eventType string, process event.Pr
 		t.Fatalf("Process output is not valid JSON: %v\nraw=%s", err, string(got))
 	}
 	return out
-}
-
-func assertStringSlice(t *testing.T, got, want []string) {
-	t.Helper()
-	if len(got) != len(want) {
-		t.Fatalf("slice len = %d, want %d; got=%v", len(got), len(want), got)
-	}
-	for i := range want {
-		if got[i] != want[i] {
-			t.Fatalf("slice[%d] = %q, want %q; got=%v", i, got[i], want[i], got)
-		}
-	}
 }

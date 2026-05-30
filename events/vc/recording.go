@@ -30,12 +30,11 @@ type VCRecordingSpeakerOutput struct {
 
 // VCRecordingStartedOutput is the flattened shape for vc.recording.recording_started_v1.
 type VCRecordingStartedOutput struct {
-	Type          string   `json:"type"                    desc:"Event type; always vc.recording.recording_started_v1"`
-	EventID       string   `json:"event_id,omitempty"      desc:"Globally unique event ID; safe for deduplication"`
-	Timestamp     string   `json:"timestamp,omitempty"     desc:"Event delivery time (ms timestamp string); taken from header.create_time when present" kind:"timestamp_ms"`
-	RecordingID   string   `json:"recording_id,omitempty"  desc:"Recording ID"`
-	Source        string   `json:"source,omitempty"        desc:"Recording source. Currently recording_bean only; consumers must branch by source for future sources."`
-	SubscriberIDs []string `json:"subscriber_ids,omitempty" desc:"Subscribers receiving this user-scoped event"`
+	Type        string `json:"type"                    desc:"Event type; always vc.recording.recording_started_v1"`
+	EventID     string `json:"event_id,omitempty"      desc:"Globally unique event ID; safe for deduplication"`
+	Timestamp   string `json:"timestamp,omitempty"     desc:"Event delivery time (ms timestamp string); taken from header.create_time when present" kind:"timestamp_ms"`
+	RecordingID string `json:"recording_id,omitempty"  desc:"Recording ID"`
+	Source      string `json:"source,omitempty"        desc:"Recording source. Currently recording_bean only; consumers must branch by source for future sources."`
 }
 
 // VCRecordingTranscriptGeneratedOutput is the flattened shape for vc.recording.recording_transcript_generated_v1.
@@ -45,20 +44,18 @@ type VCRecordingTranscriptGeneratedOutput struct {
 	Timestamp       string                            `json:"timestamp,omitempty"        desc:"Event delivery time (ms timestamp string); taken from header.create_time when present" kind:"timestamp_ms"`
 	RecordingID     string                            `json:"recording_id,omitempty"     desc:"Recording ID"`
 	Source          string                            `json:"source,omitempty"           desc:"Recording source. Currently recording_bean only; consumers must branch by source for future sources."`
-	SubscriberIDs   []string                          `json:"subscriber_ids,omitempty"   desc:"Subscribers receiving this user-scoped event"`
 	TranscriptItems []VCRecordingTranscriptItemOutput `json:"transcript_items,omitempty" desc:"Generated transcript items"`
 }
 
 // VCRecordingEndedOutput is the flattened shape for vc.recording.recording_ended_v1.
 type VCRecordingEndedOutput struct {
-	Type          string   `json:"type"                    desc:"Event type; always vc.recording.recording_ended_v1"`
-	EventID       string   `json:"event_id,omitempty"      desc:"Globally unique event ID; safe for deduplication"`
-	Timestamp     string   `json:"timestamp,omitempty"     desc:"Event delivery time (ms timestamp string); taken from header.create_time when present" kind:"timestamp_ms"`
-	RecordingID   string   `json:"recording_id,omitempty"  desc:"Recording ID"`
-	Source        string   `json:"source,omitempty"        desc:"Recording source. Currently recording_bean only; consumers must branch by source for future sources."`
-	SubscriberIDs []string `json:"subscriber_ids,omitempty" desc:"Subscribers receiving this user-scoped event"`
-	ObjectType    string   `json:"object_type,omitempty"   desc:"Artifact object type. Current value is minute; this is unstable and consumers should branch by object_type."`
-	ObjectID      string   `json:"object_id,omitempty"     desc:"Artifact object ID. Current minute object_id is a Minutes token; avoid depending on this unless object_type is minute."`
+	Type        string `json:"type"                    desc:"Event type; always vc.recording.recording_ended_v1"`
+	EventID     string `json:"event_id,omitempty"      desc:"Globally unique event ID; safe for deduplication"`
+	Timestamp   string `json:"timestamp,omitempty"     desc:"Event delivery time (ms timestamp string); taken from header.create_time when present" kind:"timestamp_ms"`
+	RecordingID string `json:"recording_id,omitempty"  desc:"Recording ID"`
+	Source      string `json:"source,omitempty"        desc:"Recording source. Currently recording_bean only; consumers must branch by source for future sources."`
+	ObjectType  string `json:"object_type,omitempty"   desc:"Artifact object type. Current value is minutes; this is unstable and consumers should branch by object_type."`
+	ObjectID    string `json:"object_id,omitempty"     desc:"Artifact object ID. Current minutes object_id is a Minutes token; avoid depending on this unless object_type is minutes."`
 }
 
 type vcRecordingEnvelope struct {
@@ -73,7 +70,6 @@ type vcRecordingEnvelope struct {
 type vcRecordingEvent struct {
 	RecordingID     string                    `json:"recording_id"`
 	Source          string                    `json:"source"`
-	SubscriberIDs   []vcRecordingString       `json:"subscriber_ids"`
 	TranscriptItems []vcRecordingTranscriptIn `json:"transcript_items"`
 	ObjectType      string                    `json:"object_type"`
 	ObjectID        string                    `json:"object_id"`
@@ -103,12 +99,11 @@ func processVCRecordingStarted(_ context.Context, _ event.APIClient, raw *event.
 		return raw.Payload, nil
 	}
 	out := &VCRecordingStartedOutput{
-		Type:          recordingEventType(envelope, raw),
-		EventID:       envelope.Header.EventID,
-		Timestamp:     envelope.Header.CreateTime,
-		RecordingID:   envelope.Event.RecordingID,
-		Source:        envelope.Event.Source,
-		SubscriberIDs: recordingStrings(envelope.Event.SubscriberIDs),
+		Type:        recordingEventType(envelope, raw),
+		EventID:     envelope.Header.EventID,
+		Timestamp:   envelope.Header.CreateTime,
+		RecordingID: envelope.Event.RecordingID,
+		Source:      envelope.Event.Source,
 	}
 	return json.Marshal(out)
 }
@@ -124,7 +119,6 @@ func processVCRecordingTranscriptGenerated(_ context.Context, _ event.APIClient,
 		Timestamp:       envelope.Header.CreateTime,
 		RecordingID:     envelope.Event.RecordingID,
 		Source:          envelope.Event.Source,
-		SubscriberIDs:   recordingStrings(envelope.Event.SubscriberIDs),
 		TranscriptItems: recordingTranscriptItems(envelope.Event.TranscriptItems),
 	}
 	return json.Marshal(out)
@@ -136,14 +130,13 @@ func processVCRecordingEnded(_ context.Context, _ event.APIClient, raw *event.Ra
 		return raw.Payload, nil
 	}
 	out := &VCRecordingEndedOutput{
-		Type:          recordingEventType(envelope, raw),
-		EventID:       envelope.Header.EventID,
-		Timestamp:     envelope.Header.CreateTime,
-		RecordingID:   envelope.Event.RecordingID,
-		Source:        envelope.Event.Source,
-		SubscriberIDs: recordingStrings(envelope.Event.SubscriberIDs),
-		ObjectType:    envelope.Event.ObjectType,
-		ObjectID:      envelope.Event.ObjectID,
+		Type:        recordingEventType(envelope, raw),
+		EventID:     envelope.Header.EventID,
+		Timestamp:   envelope.Header.CreateTime,
+		RecordingID: envelope.Event.RecordingID,
+		Source:      envelope.Event.Source,
+		ObjectType:  envelope.Event.ObjectType,
+		ObjectID:    envelope.Event.ObjectID,
 	}
 	return json.Marshal(out)
 }
@@ -212,15 +205,4 @@ func (s *vcRecordingString) UnmarshalJSON(data []byte) error {
 
 func (s vcRecordingString) String() string {
 	return string(s)
-}
-
-func recordingStrings(values []vcRecordingString) []string {
-	if len(values) == 0 {
-		return nil
-	}
-	out := make([]string, 0, len(values))
-	for _, value := range values {
-		out = append(out, value.String())
-	}
-	return out
 }
