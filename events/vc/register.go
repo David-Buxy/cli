@@ -11,13 +11,18 @@ import (
 )
 
 const (
-	eventTypeMeetingEnded  = "vc.meeting.participant_meeting_ended_v1"
-	eventTypeNoteGenerated = "vc.note.generated_v1"
+	eventTypeMeetingEnded                 = "vc.meeting.participant_meeting_ended_v1"
+	eventTypeNoteGenerated                = "vc.note.generated_v1"
+	eventTypeRecordingStarted             = "vc.recording.recording_started_v1"
+	eventTypeRecordingTranscriptGenerated = "vc.recording.recording_transcript_generated_v1"
+	eventTypeRecordingEnded               = "vc.recording.recording_ended_v1"
 
-	pathMeetingSubscribe   = "/open-apis/vc/v1/meetings/subscription"
-	pathMeetingUnsubscribe = "/open-apis/vc/v1/meetings/unsubscription"
-	pathNoteSubscribe      = "/open-apis/vc/v1/notes/subscription"
-	pathNoteUnsubscribe    = "/open-apis/vc/v1/notes/unsubscription"
+	pathMeetingSubscribe     = "/open-apis/vc/v1/meetings/subscription"
+	pathMeetingUnsubscribe   = "/open-apis/vc/v1/meetings/unsubscription"
+	pathNoteSubscribe        = "/open-apis/vc/v1/notes/subscription"
+	pathNoteUnsubscribe      = "/open-apis/vc/v1/notes/unsubscription"
+	pathRecordingSubscribe   = "/open-apis/vc/v1/recordings/subscription"
+	pathRecordingUnsubscribe = "/open-apis/vc/v1/recordings/unsubscription"
 
 	pathNoteDetailFmt = "/open-apis/vc/v1/notes/%s"
 )
@@ -56,6 +61,54 @@ func Keys() []event.KeyDefinition {
 				"user",
 			},
 			RequiredConsoleEvents: []string{eventTypeNoteGenerated},
+		},
+		{
+			Key:         eventTypeRecordingStarted,
+			DisplayName: "Recording started",
+			Description: "Triggered when a recording starts. Current source is recording_bean only; future software_recording sources may be added, so consumers must branch by source.",
+			EventType:   eventTypeRecordingStarted,
+			Schema: event.SchemaDef{
+				Custom: &event.SchemaSpec{Type: reflect.TypeOf(VCRecordingStartedOutput{})},
+			},
+			Process:    processVCRecordingStarted,
+			PreConsume: subscriptionPreConsume(eventTypeRecordingStarted, pathRecordingSubscribe, pathRecordingUnsubscribe),
+			Scopes:     []string{"vc:recording:read"},
+			AuthTypes: []string{
+				"user",
+			},
+			RequiredConsoleEvents: []string{eventTypeRecordingStarted},
+		},
+		{
+			Key:         eventTypeRecordingTranscriptGenerated,
+			DisplayName: "Recording transcript generated",
+			Description: "Triggered when recording transcript items are generated. Current source is recording_bean only; future software_recording sources may be added, so consumers must branch by source.",
+			EventType:   eventTypeRecordingTranscriptGenerated,
+			Schema: event.SchemaDef{
+				Custom: &event.SchemaSpec{Type: reflect.TypeOf(VCRecordingTranscriptGeneratedOutput{})},
+			},
+			Process:    processVCRecordingTranscriptGenerated,
+			PreConsume: subscriptionPreConsume(eventTypeRecordingTranscriptGenerated, pathRecordingSubscribe, pathRecordingUnsubscribe),
+			Scopes:     []string{"vc:recording:read"},
+			AuthTypes: []string{
+				"user",
+			},
+			RequiredConsoleEvents: []string{eventTypeRecordingTranscriptGenerated},
+		},
+		{
+			Key:         eventTypeRecordingEnded,
+			DisplayName: "Recording ended",
+			Description: "Triggered when a recording ends. Current source is recording_bean only; future software_recording sources may be added, so consumers must branch by source. Current object_type is minutes and object_id is a Minutes token, but the artifact type is unstable and may switch to document or other object types.",
+			EventType:   eventTypeRecordingEnded,
+			Schema: event.SchemaDef{
+				Custom: &event.SchemaSpec{Type: reflect.TypeOf(VCRecordingEndedOutput{})},
+			},
+			Process:    processVCRecordingEnded,
+			PreConsume: subscriptionPreConsume(eventTypeRecordingEnded, pathRecordingSubscribe, pathRecordingUnsubscribe),
+			Scopes:     []string{"vc:recording:read"},
+			AuthTypes: []string{
+				"user",
+			},
+			RequiredConsoleEvents: []string{eventTypeRecordingEnded},
 		},
 	}
 }
